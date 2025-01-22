@@ -21,6 +21,7 @@ This is a full-stack project that provides a simple login and signup system. The
 ---
 
 ## Features
+- JWT-based authentication to secure API endpoints and enable user session management.
 - User signup and login functionality.
 - Secure password hashing with bcrypt.
 - Form validation and error handling.

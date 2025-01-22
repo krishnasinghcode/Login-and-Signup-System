@@ -1,10 +1,10 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/userModel');
-
+const jwt = require("jsonwebtoken");
 // Signup controller
 const signup = async (req, res) => {
     const { name, email, password } = req.body;
-
+    const passwordstr = String(password);
     try {
         const existingUser = await User.findOne({ email });
 
@@ -12,7 +12,7 @@ const signup = async (req, res) => {
             return res.status(400).json({ message: "User already exists!" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(passwordstr, 10);
         const newUser = new User({
             name,
             email,
@@ -30,7 +30,7 @@ const signup = async (req, res) => {
 // Login controller
 const login = async (req, res) => {
     const { email, password } = req.body;
-
+    const passwordstr = String(password);
     try {
         const existingUser = await User.findOne({ email });
 
@@ -38,14 +38,22 @@ const login = async (req, res) => {
             return res.status(400).json({ message: "The user does not exist, please signup!" });
         }
 
-        const isMatch = await bcrypt.compare(password, existingUser.password);
+        const isMatch = await bcrypt.compare(passwordstr, existingUser.password);
 
         if (!isMatch) {
             return res.status(400).json({ message: "Wrong password!" });
         }
-
-        // Send success message (or JWT token if needed)
-        return res.status(200).json({ message: "Login successful!" });
+        // generating jwt token
+        const token = jwt.sign(
+            { id: existingUser._id, email: existingUser.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+        return res.status(200).json({
+            message: "Login successful!",
+            token, // sending the token to user
+        });
+        
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Login unsuccessful!" });
