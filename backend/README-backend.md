@@ -121,6 +121,11 @@ http://localhost:4000/api
     "password": "password123"
   }
   ```
+#### Reset Password
+- User requests password reset → System sends OTP via email.
+- User enters OTP → System verifies OTP.
+- User submits new password → System updates password.
+
 
 ---
 

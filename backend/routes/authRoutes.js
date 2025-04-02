@@ -1,18 +1,35 @@
-// routes/authRoutes.js
-const express = require('express');
-const { signup, login } = require('../controller/authController');
+import express from 'express';
+import { 
+    signup, 
+    login, 
+    sendVerificationOTP, 
+    verifyOTP, 
+    sendResetOTP, 
+    verifyResetOTP, 
+    resetPassword 
+} from '../controller/authController.js';
+
 const router = express.Router();
 
-router.get('/signup', (req, res) => {
-    res.json({ message: "SIGNUP PAGE" });
-});
-
+// Signup Route
 router.post('/signup', signup);
 
-router.get('/login', (req, res) => {
-    res.json({ message: "LOGIN PAGE" });
-});
-
+// Login Route
 router.post('/login', login);
 
-module.exports = router;
+// Send Verification OTP
+router.post('/verify', sendVerificationOTP);
+
+// Verify OTP
+router.post('/verify-otp', verifyOTP);
+
+// Send Password Reset OTP
+router.post('/reset-otp', sendResetOTP);
+
+// Verify Reset OTP
+router.post('/verify-reset-otp', verifyResetOTP);
+
+// Reset Password
+router.post('/reset-password', resetPassword);
+
+export default router;
