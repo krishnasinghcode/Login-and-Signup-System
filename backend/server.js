@@ -1,22 +1,29 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(express.json()); // Parse incoming JSON
+// ✅ CORS configuration
+app.use(cors({
+    origin: 'http://localhost:5173', // React frontend origin
+    credentials: true               // Allow sending cookies
+}));
 
-// Database connection
+// Middleware
+app.use(express.json());
+
+// Database
 connectDB(process.env.MONGO_URI);
 
-// Use routes
-app.use('/api', authRoutes); // All routes prefixed with '/api'
+// Routes
+app.use('/api', authRoutes);
 
-// Start the server
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

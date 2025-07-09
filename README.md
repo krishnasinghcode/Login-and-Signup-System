@@ -1,14 +1,20 @@
 # Project Name: Login and Signup System
 
 ## Table of Contents
-1. [Project Overview](#project-overview)
-2. [Features](#features)
-3. [Tech Stack](#tech-stack)
-4. [Installation](#installation)
-5. [Project Structure](#project-structure)
-6. [Usage](#usage)
-7. [Contributing](#contributing)
-8. [License](#license)
+- [Project Name: Login and Signup System](#project-name-login-and-signup-system)
+  - [Table of Contents](#table-of-contents)
+  - [Project Overview](#project-overview)
+  - [Features](#features)
+  - [Tech Stack](#tech-stack)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Steps](#steps)
+  - [Project Structure](#project-structure)
+  - [Usage](#usage)
+    - [API Documentation](#api-documentation)
+  - [Example: Fetch User Profile](#example-fetch-user-profile)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ---
 
@@ -100,6 +106,46 @@ project-root/
 3. Log in using the registered credentials.
 4. Interact with the application to test its functionality.
 
+
+### API Documentation
+1. 🔐 User Signup
+- url `http://localhost:5000/api/auth/signup`
+- data format:
+```json
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securepassword"
+}
+```
+
+2. 🔐 User Login
+- url `http://localhost:5000/api/auth/login`
+- data format:
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "securepassword"
+}
+```
+- sets `accessToken` and `refreshToken` in localStorage.
+
+3. 🔐 Use Access Token in Protected API Call
+## Example: Fetch User Profile
+- send authentication header with the access token
+```js
+export const fetchProfile = async () => {
+  const token = localStorage.getItem("accessToken");
+
+  const res = await axios.get("http://localhost:5000/api/user/profile", {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  return res.data;
+};
+```
 ---
 
 ## Contributing

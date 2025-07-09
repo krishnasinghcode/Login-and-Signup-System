@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
+import API from '../api/axios';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-    });
-
+    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
@@ -26,25 +21,13 @@ const Signup = () => {
         setSuccessMessage('');
 
         try {
-            const response = await fetch('/api/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setSuccessMessage('Signup successful! Welcome aboard.');
-                setFormData({ name: '', email: '', password: '' });
-            } else {
-                setErrorMessage(data.message || 'Signup failed. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error during signup:', error);
-            setErrorMessage('An error occurred. Please try again.');
+            const res = await API.post('/signup', formData);
+            setSuccessMessage('Signup successful! Please log in.');
+            setFormData({ name: '', email: '', password: '' });
+            navigate('/login');
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Signup failed. Please try again.';
+            setErrorMessage(msg);
         } finally {
             setLoading(false);
         }
@@ -98,13 +81,8 @@ const Signup = () => {
                         {loading ? 'Signing up...' : 'Signup'}
                     </button>
                 </form>
-                {/* Feedback Messages */}
-                {errorMessage && (
-                    <p className="text-error mt-4 text-center">{errorMessage}</p>
-                )}
-                {successMessage && (
-                    <p className="text-accent mt-4 text-center">{successMessage}</p>
-                )}
+                {errorMessage && <p className="text-error mt-4 text-center">{errorMessage}</p>}
+                {successMessage && <p className="text-accent mt-4 text-center">{successMessage}</p>}
             </div>
         </div>
     );
