@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import passport from 'passport';
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ app.use(express.json());
 
 // Database
 connectDB(process.env.MONGO_URI);
+
+app.use(passport.initialize());
 
 // Routes
 app.use('/api', authRoutes);

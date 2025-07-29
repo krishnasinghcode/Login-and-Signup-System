@@ -1,13 +1,14 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
-import { sendOTPEmail } from "../utils/nodeMailer.js"; // Import email service
+import { sendOTPEmail } from "../utils/nodeMailer.js";
 import { generateTokens } from "../utils/tokenUtils.js";
+import Otp from '../models/otpModel.js';
+
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 // Signup Controller
-
 const signup = async (req, res) => {
     const { name, email, password } = req.body;
     try {
@@ -88,48 +89,64 @@ const logout = async (req, res) => {
 
 
 // Send Verification OTP
+// controllers/authController.js
 const sendVerificationOTP = async (req, res) => {
-    try {
-        const { email } = req.body;
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const otp = generateOTP();
-        user.verifyOtp = otp; // Use verifyOtp from the schema
-        user.verifyOtpExpireAt = new Date(Date.now() + 10 * 60 * 1000); // Expires in 10 minutes
-        await user.save();
-
-        await sendOTPEmail(email, otp, "Email Verification OTP");
-        res.status(200).json({ message: "OTP sent to email" });
-    } catch (error) {
-        console.error("Error sending OTP:", error);
-        res.status(500).json({ message: "Internal server error" });
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
     }
+
+    // Optional: Delete any existing OTP for this email
+    await Otp.deleteMany({ email });
+
+    const otp = generateOTP(); // E.g., "123456"
+
+    // Save new OTP document
+    const newOtp = new Otp({ email, otp });
+    await newOtp.save();
+
+    // Send OTP via email
+    await sendOTPEmail(email, otp, "Email Verification OTP");
+
+    return res.status(200).json({ message: "OTP sent to email" });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
 
+
 // Verify OTP
-const verifyOTP = async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-        const user = await User.findOne({ email });
+const verifyAndSignup = async (req, res) => {
+  try {
+    const { name, email, password, otp } = req.body;
 
-        if (!user || user.verifyOtp !== otp || new Date() > user.verifyOtpExpireAt) {
-            return res.status(400).json({ message: "Invalid or expired OTP" });
-        }
+    if (!name || !email || !password || !otp) {
+      return res.status(400).json({ message: "All fields are required." });
+    }``
 
-        user.isAccountVerified = true;
-        user.verifyOtp = null; // Clear OTP after verification
-        user.verifyOtpExpireAt = null;
-        await user.save();
-
-        res.status(200).json({ message: "OTP verified successfully!" });
-    } catch (error) {
-        console.error("Error verifying OTP:", error);
-        res.status(500).json({ message: "Internal server error" });
+    const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
+    if (!existingOtp || existingOtp.otp !== otp) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
     }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ name, email, password: hashedPassword });
+    await newUser.save();
+
+    await Otp.deleteMany({ email });
+
+    return res.status(201).json({ message: "User registered successfully!" });
+  } catch (error) {
+    console.error("Signup error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
 };
 
 // Send Password Reset OTP
@@ -223,6 +240,22 @@ const refreshAccessToken = (req, res) => {
     });
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    return res.status(200).json({
+      success: true,
+      user: {
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Get Profile Error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 
 // Export Controllers
 export {
@@ -230,9 +263,10 @@ export {
     login,
     logout,
     sendVerificationOTP,
-    verifyOTP,
+    verifyAndSignup,
     sendResetOTP,
     verifyResetOTP,
     resetPassword,
     refreshAccessToken,
+    getProfile
 };

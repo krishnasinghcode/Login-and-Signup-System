@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import API from '../api/axios'; // your configured axios instance
+import API from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -25,7 +26,7 @@ const Login = () => {
             localStorage.setItem('accessToken', res.data.accessToken);
             setSuccessMessage('Login successful!');
             setFormData({ email: '', password: '' });
-            navigate('/dashboard'); // redirect after login
+            navigate('/');
         } catch (err) {
             const msg = err.response?.data?.message || 'Login failed.';
             setErrorMessage(msg);
@@ -35,7 +36,7 @@ const Login = () => {
     };
 
     return (
-        <div className="flex items-center justify-center bg-background text-text">
+        <div className="min-h-screen flex items-center justify-center bg-background text-text">
             <div className="w-full max-w-md border-2 border-lightAccent p-8 rounded-lg shadow-lg">
                 <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,13 +65,20 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full bg-accent px-4 py-2 mt-4 bg-lightAccent text-text rounded ${
+                        className={`w-full bg-lightAccent px-4 py-2 mt-4 text-text rounded ${
                             loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-80'
                         } transition-all duration-300`}
                     >
                         {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
+
+                {/* Divider */}
+                <div className="my-4 text-center text-sm text-gray-400">OR</div>
+
+                {/* Google OAuth Button */}
+                <GoogleLoginButton />
+
                 {errorMessage && <p className="text-error mt-4 text-center">{errorMessage}</p>}
                 {successMessage && <p className="text-accent mt-4 text-center">{successMessage}</p>}
             </div>
