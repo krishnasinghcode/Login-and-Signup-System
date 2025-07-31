@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://localhost:5000/api/auth",
   withCredentials: true,
 });
 
@@ -14,7 +14,7 @@ API.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const res = await axios.get("http://localhost:5000/api/refresh-token", {
+        const res = await axios.get("http://localhost:5000/api/auth/refresh-token", {
           withCredentials: true,
         });
 

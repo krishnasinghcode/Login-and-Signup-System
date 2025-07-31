@@ -22,14 +22,14 @@ const signup = async (req, res) => {
         const newUser = new User({ name, email, password: hashedPassword });
         const savedUser = await newUser.save();
 
-        const { accessToken, refreshToken } = generateTokens(savedUser._id, savedUser.email);
+        // const { accessToken, refreshToken } = generateTokens(savedUser._id, savedUser.email);
 
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
+        // res.cookie('refreshToken', refreshToken, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'Strict',
+        //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        // });
 
         res.status(200).json({ message: "Signup successful!", accessToken });
     } catch (error) {
@@ -91,62 +91,67 @@ const logout = async (req, res) => {
 // Send Verification OTP
 // controllers/authController.js
 const sendVerificationOTP = async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        // Optional: Delete any existing OTP for this email
+        await Otp.deleteMany({ email });
+
+        const otp = generateOTP(); // E.g., "123456"
+
+        // Save new OTP document
+        const newOtp = new Otp({ email, otp });
+        await newOtp.save();
+
+        // Send OTP via email
+        await sendOTPEmail(email, otp, "Email Verification OTP");
+
+        return res.status(200).json({ message: "OTP sent to email" });
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        return res.status(500).json({ message: "Internal server error" });
     }
-
-    // Optional: Delete any existing OTP for this email
-    await Otp.deleteMany({ email });
-
-    const otp = generateOTP(); // E.g., "123456"
-
-    // Save new OTP document
-    const newOtp = new Otp({ email, otp });
-    await newOtp.save();
-
-    // Send OTP via email
-    await sendOTPEmail(email, otp, "Email Verification OTP");
-
-    return res.status(200).json({ message: "OTP sent to email" });
-  } catch (error) {
-    console.error("Error sending OTP:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
 };
 
 
 // Verify OTP
 const verifyAndSignup = async (req, res) => {
-  try {
-    const { name, email, password, otp } = req.body;
+    try {
+        const { name, email, password, otp } = req.body;
 
-    if (!name || !email || !password || !otp) {
-      return res.status(400).json({ message: "All fields are required." });
-    }``
+        if (!name || !email || !password || !otp) {
+            return res.status(400).json({ message: "All fields are required." });
+        } ``
 
-    const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
-    if (!existingOtp || existingOtp.otp !== otp) {
-      return res.status(400).json({ message: "Invalid or expired OTP." });
+        const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
+        if (!existingOtp || existingOtp.otp !== otp) {
+            return res.status(400).json({ message: "Invalid or expired OTP." });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists." });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            isAccountVerified: true,
+        });
+        await newUser.save();
+
+        await Otp.deleteMany({ email });
+
+        return res.status(201).json({ message: "User registered successfully!" });
+    } catch (error) {
+        console.error("Signup error:", error);
+        return res.status(500).json({ message: "Internal server error." });
     }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists." });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
-
-    await Otp.deleteMany({ email });
-
-    return res.status(201).json({ message: "User registered successfully!" });
-  } catch (error) {
-    console.error("Signup error:", error);
-    return res.status(500).json({ message: "Internal server error." });
-  }
 };
 
 // Send Password Reset OTP
@@ -241,19 +246,17 @@ const refreshAccessToken = (req, res) => {
 };
 
 const getProfile = async (req, res) => {
-  try {
-    const user = req.user;
-    return res.status(200).json({
-      success: true,
-      user: {
-        name: user.name,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error("Get Profile Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
+    try {
+        const user = await User.findById(req.user._id).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Error fetching profile:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
 
 

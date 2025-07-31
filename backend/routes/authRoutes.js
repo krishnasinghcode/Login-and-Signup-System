@@ -2,7 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import Otp from '../models/otpModel.js';
 import nodemailer from 'nodemailer';
-import { isAuthenticated } from "../middleware/authMiddleware.js";
+import { authenticateUser } from "../middleware/authMiddleware.js";
 
 import { 
     signup, 
@@ -59,7 +59,7 @@ router.post('/reset-password', resetPassword);
 // Refresh Access Token
 router.get("/refresh-token", refreshAccessToken);
 
-router.get("/profile", isAuthenticated, getProfile);
+router.get("/profile", authenticateUser, getProfile);
 
 router.post('/logout', logout);
 
@@ -75,7 +75,6 @@ router.get('/auth/google/callback',
     return res.redirect(`http://localhost:5173/oauth-success?access=${accessToken}&refresh=${refreshToken}`);
   }
 );
-
 
 router.post('/send-otp', async (req, res) => {
   const { email } = req.body;

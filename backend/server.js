@@ -24,7 +24,7 @@ connectDB(process.env.MONGO_URI);
 app.use(passport.initialize());
 
 // Routes
-app.use('/api', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

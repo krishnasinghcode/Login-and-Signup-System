@@ -1,37 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import API from '../api/axios';
+// src/pages/Home.jsx
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
-  const [user, setUser] = useState(null);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await API.get('/profile', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
-        });
-        setUser(res.data.user);
-      } catch (err) {
-        console.error('Failed to fetch profile:', err);
-      }
-    };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-text p-6">
+        <p>Loading user data...</p>
+      </div>
+    );
+  }
 
-    fetchProfile();
-  }, []);
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background text-text p-6">
+        <p>User not found or not authenticated.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-text p-6">
       <h1 className="text-2xl font-bold mb-4">Welcome to the Dashboard</h1>
-      {user ? (
-        <div>
-          <p><strong>Name:</strong> {user.name || 'N/A'}</p>
-          <p><strong>Email:</strong> {user.email}</p>
-        </div>
-      ) : (
-        <p>Loading user data...</p>
-      )}
+      <div>
+        <p><strong>Name:</strong> {user.name || 'N/A'}</p>
+        <p><strong>Email:</strong> {user.email}</p>
+        <p><strong>Account Verified:</strong> {user.isAccountVerified ? 'Yes' : 'No'}</p>
+      </div>
     </div>
   );
 };
