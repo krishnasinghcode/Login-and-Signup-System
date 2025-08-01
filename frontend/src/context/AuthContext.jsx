@@ -1,6 +1,5 @@
-// src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-import API from "../api/axios"; // Your interceptor-configured instance
+import API from "../api/axios";
 
 const AuthContext = createContext();
 
@@ -10,7 +9,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem("accessToken") || null);
 
-  // Set token in API defaults
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    setUser(null);
+    setAuthenticated(false);
+    setToken(null);
+    delete API.defaults.headers.common["Authorization"];
+  };
+
   useEffect(() => {
     if (token) {
       API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -27,11 +33,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const res = await API.get("/profile"); // Uses interceptor
+        const res = await API.get("/profile");
         setUser(res.data);
         setAuthenticated(true);
       } catch (err) {
-        console.error("Auth check failed", err.message);
+        console.error("Auth check failed:", err.message);
         setAuthenticated(false);
         setUser(null);
         setToken(null);
@@ -54,6 +60,7 @@ export const AuthProvider = ({ children }) => {
         setUser,
         setAuthenticated,
         setToken,
+        logout,
       }}
     >
       {children}
@@ -62,4 +69,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
- 

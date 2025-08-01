@@ -1,16 +1,20 @@
-// src/components/LogoutButton.jsx
 import React from 'react';
 import API from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LogoutButton = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     try {
       await API.post('/logout');
-      localStorage.removeItem('accessToken');
-      navigate('/login');
+      logout();
+      // Ensure state updates propagate before navigating
+      Promise.resolve().then(() => {
+        navigate('/login', { replace: true });
+      });
     } catch (error) {
       console.error('Logout failed:', error);
     }
