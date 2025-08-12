@@ -3,20 +3,38 @@
 ## Table of Contents
 - [Project Name: Login and Signup System](#project-name-login-and-signup-system)
   - [Table of Contents](#table-of-contents)
+  - [ScreenShots](#screenshots)
+    - [Signup Page](#signup-page)
+    - [Login Page](#login-page)
+    - [OTP Verification Screen](#otp-verification-screen)
+    - [Dashboard](#dashboard)
   - [Project Overview](#project-overview)
   - [Features](#features)
-  - [Tech Stack](#tech-stack)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
     - [Steps](#steps)
-  - [Project Structure](#project-structure)
   - [Usage](#usage)
-    - [API Documentation](#api-documentation)
-  - [Example: Fetch User Profile](#example-fetch-user-profile)
+  - [**API Endpoints**](#api-endpoints)
+    - [**1. Send OTP**](#1-send-otp)
+    - [**2. Verify OTP \& Signup**](#2-verify-otp--signup)
+    - [**3. Login**](#3-login)
+    - [**4. Google Login**](#4-google-login)
   - [Contributing](#contributing)
-  - [License](#license)
 
 ---
+## ScreenShots
+### Signup Page
+![Signup Page](./screenshots/signup.png)
+
+### Login Page
+![Login Page](./screenshots/login.png)
+
+### OTP Verification Screen
+![OTP Verification](./screenshots/otpverification.png)
+
+### Dashboard
+![Dashboard](./screenshots/dashboard.png)
+
 
 ## Project Overview
 This is a full-stack project that provides a simple login and signup system. The system is divided into two main components:
@@ -28,17 +46,12 @@ This is a full-stack project that provides a simple login and signup system. The
 
 ## Features
 - JWT-based authentication to secure API endpoints and enable user session management.
+- Google auth for quick signup and login.
+- Otp verification for added security.
 - User signup and login functionality.
 - Secure password hashing with bcrypt.
 - Form validation and error handling.
 - Responsive user interface.
-
----
-
-## Tech Stack
-- **Frontend**: React, Vite, Tailwind CSS
-- **Backend**: Node.js, Express.js, MongoDB
-- **Tools**: Postman (API testing), Git, GitHub
 
 ---
 
@@ -78,28 +91,6 @@ This is a full-stack project that provides a simple login and signup system. The
 
 ---
 
-## Project Structure
-```
-project-root/
-|── backend/              # Backend code
-|    ├── config/
-|    ├── controllers/
-|    ├── models/
-|    ├── routes/
-|    ├── server.js
-|    └── README.md
-|
-|── frontend/             # Frontend code
-|    ├── src/
-|    ├── public/
-|    ├── vite.config.js
-|    └── README.md
-|
-|── README.md             # Root README (this file)
-```
-
----
-
 ## Usage
 1. Open your browser and navigate to `http://localhost:5173` to access the frontend.
 2. Use the signup page to create a new user account.
@@ -107,45 +98,81 @@ project-root/
 4. Interact with the application to test its functionality.
 
 
-### API Documentation
-1. 🔐 User Signup
-- url `http://localhost:5000/api/auth/signup`
-- data format:
-```json
-{
-  "name": "John Doe",
-  "email": "john.doe@example.com",
-  "password": "securepassword"
-}
-```
+Here’s a **professional API documentation** tailored to your Login/Signup app based on the code you shared.
+I’ll structure it in a **developer-friendly** format with request/response details, status codes, and usage examples.
 
-2. 🔐 User Login
-- url `http://localhost:5000/api/auth/login`
-- data format:
-```json
-{
-  "email": "john.doe@example.com",
-  "password": "securepassword"
-}
-```
-- sets `accessToken` and `refreshToken` in localStorage.
+---
 
-3. 🔐 Use Access Token in Protected API Call
-## Example: Fetch User Profile
-- send authentication header with the access token
-```js
-export const fetchProfile = async () => {
-  const token = localStorage.getItem("accessToken");
+Got it — you just want a **simple, basic API doc** listing the URLs, HTTP methods, and required data for login/signup.
 
-  const res = await axios.get("http://localhost:5000/api/user/profile", {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
+Here’s the clean version:
 
-  return res.data;
-};
-```
+---
+
+## **API Endpoints**
+
+### **1. Send OTP**
+
+* **URL:** `/send-otp`
+* **Method:** `POST`
+* **Data Required:**
+
+  ```json
+  {
+    "email": "user@example.com"
+  }
+  ```
+* **Purpose:** Sends OTP to the given email for signup verification.
+
+---
+
+### **2. Verify OTP & Signup**
+
+* **URL:** `/verify-signup`
+* **Method:** `POST`
+* **Data Required:**
+
+  ```json
+  {
+    "name": "John Doe",
+    "email": "user@example.com",
+    "password": "securePassword123",
+    "otp": "123456"
+  }
+  ```
+* **Purpose:** Verifies OTP and creates a new user account.
+
+---
+
+### **3. Login**
+
+* **URL:** `/login`
+* **Method:** `POST`
+* **Data Required:**
+
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "securePassword123"
+  }
+  ```
+* **Purpose:** Authenticates user and returns an access token.
+
+---
+
+### **4. Google Login**
+
+* **URL:** `/auth/google`
+* **Method:** `POST`
+* **Data Required:**
+
+  ```json
+  {
+    "token": "<GOOGLE_ID_TOKEN>"
+  }
+  ```
+* **Purpose:** Authenticates via Google OAuth and returns an access token.
+
 ---
 
 ## Contributing
@@ -167,7 +194,3 @@ We welcome contributions to improve this project. Here’s how you can contribut
 5. Submit a pull request.
 
 ---
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
-
